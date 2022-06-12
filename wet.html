@@ -278,7 +278,7 @@ window.onload = (event) => {
     const wetradio = document.getElementById("usewet");
 
     rhradio.addEventListener('click',function hndClick() {
-    
+
        console.log("rhradio click");
     });
     wetradio.addEventListener('click',function hndClick() {
@@ -301,8 +301,16 @@ function attemptClear() {
     </script>
     <style>
 * {
-    font: normal 30px Verdana, Arial, sans-serif;
+    font: normal 38px Verdana, Arial, sans-serif;
 }
+#siteinfo table tbody tr td {
+    font: normal 25px Verdana, Arial, sans-serif;
+}
+
+label {
+    font: normal 25px Verdana, Arial, sans-serif;
+}
+
 
     </style>
 </head>
@@ -310,14 +318,14 @@ function attemptClear() {
 <button id="siteinfobutton" text="Show Site Info">Show Site Info</button>
 <form id="ourform">
     <div id="siteinfo" style="display:none">
-        <table border="0" cellpadding="3" cellspacing="2">
+        <table border="0" cellpadding="3" cellspacing="2" style="font: 20px">
             <tbody>
             <tr>
-                <td>Month:</td>
+                <td style="font: 20px">Month:</td>
                 <td>
                     <div>
-                        <input type="radio" id="mjj" name="season" value="MayJunJul" checked>
-                        <label for="mjj">MayJunJul</label>
+                        <input style="font: 20px" type="radio" id="mjj" name="season" value="MayJunJul" checked>
+                        <label style="font: 20px" for="mjj">MayJunJul</label>
                     </div>
                     <div>
                         <input type="radio" id="ndj" name="season" value="NovDecJan">
