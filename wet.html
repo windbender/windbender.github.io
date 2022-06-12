@@ -1,0 +1,432 @@
+<!DOCTYPE html PUBLIC "-//W3C//DTD HTML 4.01 Transitional//EN">
+<html>
+<head>
+    <title>FEMO machine</title>
+    <script language="javascript">
+function parseTempToC(form,value) {
+   var v = parseFloat(value);
+   if(form.tunit.value=='Fahrenheit') {
+     v = (v -32 ) * 5/9;
+     console.log('running in F');
+   }
+   return v;
+}
+function RH(form){
+     var dry = parseTempToC(form,form.dry.value);
+     var wet = parseTempToC(form,form.wet.value);
+     console.log("db:"+dry+"  wb:"+wet);
+     var p = 101.3;
+     var A = 0.00066*(1.0 + 0.00115*wet);
+     var eswb = Math.exp((16.78*wet-116.9)/(wet+237.3));
+     var ed = eswb - A*p*(dry-wet);
+     var esdb = Math.exp((16.78*dry-116.9)/(dry+237.3));
+     return Math.round(100.0*(ed/esdb));
+}
+function indexOfLessThan(arr, val) {
+     for(var i=0; i < arr.length; i++) {
+       if(val <= arr[i]) return i;
+     }
+     return arr.length-1;
+}
+function refFuelMoisure(form,rh) {
+     var db = parseTempToC(form,form.dry.value)*9/5 + 32;;
+     console.log("db in F:"+db);
+     var rhToIndex =[4,9,14,19,24,29,34,39,44,49,54,59,64,69,74,79,84,89,94,99,100];
+     var dbToIndex =[29,49,69,89,109,199];
+     var rfms = [
+               [1,2,2,3,4,5,5,6,7,8,8,8,9,9,10,11,12,12,13,13,14],
+               [1,2,2,3,4,5,5,6,7,7,7,8,9,9,10,10,11,12,13,13,13],
+               [1,2,2,3,4,5,5,6,6,7,7,8,8,9,9,10,11,12,12,12,13],
+               [1,1,2,2,3,4,5,5,6,7,7,8,8,8,9,10,10,11,12,12,13],
+               [1,1,2,2,3,4,4,5,6,7,7,8,8,8,9,10,10,11,12,12,13],
+               [1,1,2,2,3,4,4,5,6,7,7,8,8,8,9,10,10,11,12,12,12]
+                ];
+     var rhIndex = indexOfLessThan(rhToIndex,rh);
+     var dbIndex = indexOfLessThan(dbToIndex,db);
+     console.log("rhIndex: "+rhIndex+" dbIndex: "+ dbIndex+"   ");
+     var rfm = rfms[dbIndex][rhIndex];
+     return rfm;
+}
+
+var corr = {
+       "MayJunJul":{
+         "l50": {
+             "nsl30":[2,3,4,1,1,1,0,0,1,0,0,1,1,1,1,2,3,4],
+             "nsg30":[3,4,4,1,2,2,1,1,2,1,1,2,1,2,2,3,4,4],
+             "esl30":[2,2,3,1,1,1,0,0,1,0,0,1,1,1,2,3,4,4],
+             "esg30":[1,2,2,0,0,1,0,0,1,1,1,2,2,3,4,4,5,6],
+             "ssl30":[2,3,3,1,1,1,0,0,1,0,0,1,1,1,1,2,3,3],
+             "ssg30":[2,3,3,1,1,2,0,1,1,0,1,1,1,1,2,2,3,3],
+             "wsl30":[2,3,4,1,1,2,0,0,1,0,0,1,0,1,1,2,3,3],
+             "wsg30":[4,5,6,2,3,4,1,1,2,0,0,1,0,0,1,1,2,2]
+             },
+         "g50": {
+             "nsl30":[4,5,5,3,4,5,3,3,4,3,3,4,3,4,5,4,5,5],
+             "nsg30":[4,5,5,3,4,5,3,3,4,3,3,4,3,4,5,4,5,5],
+             "esl30":[4,4,5,3,4,5,3,3,4,3,3,4,3,4,5,4,5,6],
+             "esg30":[4,4,5,3,4,5,3,3,4,3,3,4,3,4,5,4,5,6],
+             "ssl30":[4,4,5,3,4,5,3,3,4,3,3,4,3,4,5,4,5,5],
+             "ssg30":[4,4,5,3,4,5,3,3,4,3,3,4,3,4,5,4,5,5],
+             "wsl30":[4,5,6,3,4,5,3,3,4,3,3,4,3,4,5,4,4,5],
+             "wsg30":[4,5,6,3,4,5,3,3,4,3,3,4,3,4,5,4,4,5]
+             }
+       },
+       "NovDecJan":{
+       },
+       "FebMarAprAugSeptOct": {
+       } 
+     };
+
+function deadFuelMoistureCorrection(form) {
+    var season=form.season.value;     
+    var slope=form.slope.value;
+    var shading=form.shading.value;;
+    var unitalt = form.unitalt.value;
+    var innercorr = corr[season][shading][slope];
+    console.log("single row",innercorr);
+    // that was an array representing a single row in one of the three tables.
+    var today = new Date();
+    var hrs = today.getHours();
+    console.log("so hours is ",hrs);
+    var timeIndex = Math.floor((hrs - 8)/2);
+    if(timeIndex > 5) timeIndex =5;
+    if(timeIndex <0) timeIndex =0;
+    console.log("time index is ",timeIndex);
+    var altIndex = 1;
+    if(form.unitalt.value=='above') {
+       altIndex= 2;
+    } else if(form.unitalt.value=='below') {
+       altIndex= 0;
+    }
+    var index = timeIndex * 3 + altIndex;
+    console.log("index from time and altitude is ",index);
+    var correction = innercorr[index];
+    console.log("so correction is ",correction);
+    return correction; 
+}
+function calculatePIg(form,dfmc) {
+    let shade = form.shading.value;
+    let dryC = parseTempToC(form,form.dry.value);
+    let dryF = (dryC * 9/5) + 32;
+    console.log("dryF  is ",dryF);
+    let dryIndex = Math.floor(dryF/10) * 10;
+    var pig = {
+      "l50": {
+        "110":[100,100,80,70,60,60,50,40,40,30,30,20,20,20,20,10],
+        "100":[100, 90,80,70,60,60,50,40,40,30,30,20,20,20,10,10],
+         "90":[100, 90,80,70,60,50,40,40,30,30,30,20,20,20,10,10],
+         "80":[100, 90,80,70,60,50,40,40,30,30,20,20,20,10,10,10],
+         "70":[100, 80,70,60,60,50,40,40,30,30,20,20,20,10,10,10],
+         "60":[ 90, 80,70,60,50,50,40,30,30,20,20,20,20,10,10,10],
+         "50":[ 90, 80,70,60,50,40,40,30,30,20,20,20,10,10,10,10],
+         "40":[ 90, 80,70,60,50,40,40,30,30,20,20,20,10,10,10,10],
+         "30":[ 80, 70,60,50,50,40,30,30,20,20,20,10,10,10,10,10]
+      },
+    "g50": {
+         "110":[100, 90,80,70,60,50,50,40,40,30,30,20,20,20,10,10],
+         "100":[100, 90,80,70,60,60,50,40,40,30,30,20,20,20,10,10],
+         "90":[100, 90,80,70,60,50,40,40,30,30,30,20,20,20,10,10],
+         "80":[100, 90,80,70,60,50,40,40,30,30,20,20,20,10,10,10],
+         "70":[100, 80,70,60,60,50,40,40,30,30,20,20,20,10,10,10],
+         "60":[ 90, 80,70,60,50,50,40,30,30,20,20,20,20,10,10,10],
+         "50":[ 90, 80,70,60,50,40,40,30,30,20,20,20,10,10,10,10],
+         "40":[ 90, 80,70,60,50,40,40,30,30,20,20,20,10,10,10,10],
+         "30":[ 80, 70,60,50,50,40,30,30,20,20,20,10,10,10,10,10]
+      }
+    };
+    console.log("shade ",shade);
+    console.log("dryIndex ",dryIndex);
+    let section = pig[shade];
+    let row = section[dryIndex];
+    console.log("row is ",row);
+    if(dfmc < 2) dfmc = 2;
+    if(dfmc > 17) dfmc = 17;
+    let dfmcIndex = Math.floor(dfmc) - 2;
+    let pigout = row[dfmcIndex];
+    return pigout;
+}
+
+var tabdat =  [];
+tabdat.push(["date","dry bulb", "web bulb","rel hum","PIg"]);
+
+function storeIt(form) {
+  window.localStorage.setItem("shading",form.shading.value);
+  window.localStorage.setItem("season",form.season.value);
+  window.localStorage.setItem("slope",form.slope.value);
+  window.localStorage.setItem("unitalt",form.unitalt.value);
+  window.localStorage.setItem("history",JSON.stringify(tabdat));
+
+}
+
+function createTable(tableData) {
+  // find the table.
+  var table = document.querySelector('#resultsTable');
+  // clear the table
+
+  var children = table.children;
+  for (var i = 0; i < children.length; i++) {
+     var tableChild = children[i];
+     table.removeChild(tableChild);
+  }
+
+  // recreate the table bits
+  var tableBody = document.createElement('tbody');
+
+  tableData.forEach(function(rowData) {
+    var row = document.createElement('tr');
+
+    rowData.forEach(function(cellData) {
+      var cell = document.createElement('td');
+      cell.appendChild(document.createTextNode(cellData));
+      row.appendChild(cell);
+    });
+
+    tableBody.appendChild(row);
+  });
+
+  table.appendChild(tableBody);
+}
+
+function pad(num, size) {
+    num = num.toString();
+    while (num.length < size) num = "0" + num;
+    return num;
+}
+
+function calculateAndPush(form) {
+    var rh = 100;
+    if(form.userh.value=='rh') {
+      rh = parseFloat(form.rh.value);
+      if(rh > 100) rh = 100;
+      if(rh < 0) rh = 0;
+    } else {
+      rh = RH(form);
+    }
+    form.relhum.value=rh;
+    let rfm =refFuelMoisure(form,rh);
+    form.rfm.value=rfm;
+
+    let correction = deadFuelMoistureCorrection(form);
+    let dfmc =correction + rfm;
+    console.log("so DFMC is "+dfmc);
+    form.dfmc.value=dfmc;
+    let pig = calculatePIg(form,dfmc)
+    form.pig.value=pig;
+    var arow = [];
+    var now = new Date();
+    var hrs = now.getHours();
+    var mins = now.getMinutes();
+    var whens = ""+pad(hrs,2)+":"+pad(mins,2);
+    arow.push(whens);
+    arow.push(form.dry.value);
+    arow.push(form.wet.value);
+    arow.push(form.relhum.value);
+    arow.push(pig);
+    console.log("new row is ",arow);
+    console.log("old tabdat is ",tabdat);
+    tabdat.push(arow);
+
+    storeIt(form);
+    createTable(tabdat);
+}
+
+
+window.onload = (event) => {
+  console.log('page is fully loaded');
+  const aform = document.querySelector('#ourform');
+  console.log("aform is ",aform);
+  if(window.localStorage.getItem("shading")) {
+        //console.log("we are here, value is "+window.localStorage.getItem("shading");
+      aform.shading.value =window.localStorage.getItem("shading");
+  }
+  if(window.localStorage.getItem("season"))
+      aform.season.value = window.localStorage.getItem("season");
+  if(window.localStorage.getItem("slope"))
+      aform.slope.value = window.localStorage.getItem("slope");
+  if(window.localStorage.getItem("unitalt"))
+      aform.unitalt.value = window.localStorage.getItem("unitalt");
+
+  if(window.localStorage.getItem("history")) {
+      tabdat = JSON.parse(window.localStorage.getItem("history"));
+      createTable(tabdat);
+   }
+
+};
+
+function attemptClear() {
+   if (window.confirm("Do you really want clear the history?")) {
+     tabdat =  [];
+     tabdat.push(["date","dry bulb", "web bulb","rel hum","PIg"]);
+     createTable(tabdat);
+     window.localStorage.setItem("history",JSON.stringify([["date","dry bulb", "web bulb","rel hum","PIg"]]));
+   }
+}
+
+function setUseRH() {
+   document.querySelector('#userh').checked = true;
+}
+function setUseWB() {
+   document.querySelector('#usewet').checked = true;
+}
+
+    </script>
+</head>
+<body bgcolor="#ffffff">
+<form id="ourform">
+    <p>Enter the dry bulb temperature
+        ( T<sub>dry</sub>) and wet bulb temperature ( T<sub>wet</sub>) in degrees
+        Celsius, then click on the Calculate RH button</p>
+    <p>
+    <table border="0" cellpadding="3" cellspacing="2" height="37" width="98%">
+        <tbody>
+        <tr>
+            <td>Month:</td>
+            <td>
+                <div>
+                    <input type="radio" id="mjj" name="season" value="MayJunJul" checked>
+                    <label for="mjj">MayJunJul</label>
+                </div>
+                <div>
+                    <input type="radio" id="ndj" name="season" value="NovDecJan">
+                    <label for="mjj">NovDecJan</label>
+                </div>
+                <div>
+                    <input type="radio" id="fmaaso" name="season" value="FebMarAprAugSeptOct">
+                    <label for="mjj">FebMarAprAugSeptOct</label>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>Slope:</td>
+            <td>
+                <div>
+                    <input type="radio" id="slopeNL30" name="slope" value="nsl30">
+                    <label for="slopeNL30">North Slope Less than 30%</label>
+                </div>
+                <div>
+                    <input type="radio" id="slopeNG30" name="slope" value="nsg30">
+                    <label for="slopeNG30">North Slope Greater than 30%</label>
+                </div>
+                <div>
+                    <input type="radio" id="slopeNL30" name="slope" value="esl30" checked>
+                    <label for="slopeEL30">East Slope Less than 30%</label>
+                </div>
+                <div>
+                    <input type="radio" id="slopeNG30" name="slope" value="esg30">
+                    <label for="slopeEG30">East Slope Greater than 30%</label>
+                </div>
+                <div>
+                    <input type="radio" id="slopeSL30" name="slope" value="ssl30">
+                    <label for="slopeSL30">South Slope Less than 30%</label>
+                </div>
+                <div>
+                    <input type="radio" id="slopeSG30" name="slope" value="ssg30">
+                    <label for="slopeSG30">South Slope Greater than 30%</label>
+                </div>
+                <div>
+                    <input type="radio" id="slopeWL30" name="slope" value="wsl30">
+                    <label for="slopeWL30">West Slope Less than 30%</label>
+                </div>
+                <div>
+                    <input type="radio" id="slopeWG30" name="slope" value="wsg30">
+                    <label for="slopeWG30">West Slope Greater than 30%</label>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>Shading of Surface Fuels</td>
+            <td>
+                <div>
+                    <input type="radio" id="l50" name="shading" value="l50" checked>
+                    <label for="l50">less than 50% shaded surface fuels</label>
+                </div>
+                <div>
+                    <input type="radio" id="g50" name="shading" value="g50">
+                    <label for="g50">more than 50% shaded surface fuels</label>
+                </div>
+            </td>
+        </tr>
+        <tr>
+            <td>unit altitude relative to wx</td>
+            <td>
+                <div>
+                    <input type="radio" id="below" name="unitalt" value="below">
+                    <label for="below">unit is 1000-2000' below wx</label>
+                </div>
+                <div>
+                    <input type="radio" id="same" name="unitalt" value="same" checked>
+                    <label for="same">unit is within 1000' altitude of wx</label>
+                </div>
+                <div>
+                    <input type="radio" id="above" name="unitalt" value="above">
+                    <label for="above">unit is 1000-2000' above wx</label>
+                </div>
+            </td>
+        </tr>
+        </tbody>
+    </table>
+    <table>
+        <tbody>
+        <tr>
+            <td>temp units:
+                <div>
+                    <input type="radio" id="c" name="tunit" value="Celcius">
+                    <label for="c">Celcius</label>
+                </div>
+                <div>
+                    <input type="radio" id="f" name="tunit" value="Fahrenheit" checked>
+                    <label for="f">Fahrenheit</label>
+                </div>
+            </td>
+            <td>
+                <p align="right">T<sub>dry</sub></p>
+            </td>
+            <td><input name="dry" size="6" type="text" value="80"></td>
+            <td>
+                <input type="radio" id="usewet" name="userh" value='wet' checked>
+                <p align="right">T<sub>wet</sub></p>
+            </td>
+            <td><input name="wet" size="6" type="text" onclick="setUseWB()" value="65"></td>
+            <td>
+                <input type="radio" id="userh" name="userh" value='rh'>
+                <p align="right">RH<sub>%</sub></p>
+            </td>
+            <td><input name="rh" size="3" type="text" onclick="setUseRH()" ></td>
+        </tr>
+        <tr>
+            <td>
+                <p align="center"><input value=" Calculate" onclick="calculateAndPush(this.form);" type="button"></p>
+            </td>
+        </tr>
+        <tr>
+            <td>Relative Humidity</td>
+            <td width="17%"><input name="relhum" size="6" type="text"></td>
+        </tr>
+        <tr>
+            <td>Reference FM</td>
+            <td width="17%"><input name="rfm" size="6" type="text"></td>
+        </tr>
+        <tr>
+            <td>Dead Fuel Moisture Content %</td>
+            <td width="17%"><input name="dfmc" size="6" type="text"></td>
+        </tr>
+        <tr>
+            <td>PIg propability of ignition</td>
+            <td width="17%"><input name="pig" size="6" type="text"></td>
+        </tr>
+        <tr>
+            <td>
+                <p align="center"><input value="clear results table" onclick="attemptClear();" type="button"></p>
+            </td>
+        </tr>
+
+        </tbody>
+    </table>
+    </p>
+
+</form>
+<table id="resultsTable">
+</table>
+
+</body>
+</html>
