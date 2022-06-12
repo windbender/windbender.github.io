@@ -3,6 +3,7 @@
 <head>
     <title>FEMO machine</title>
     <script language="javascript">
+
 function parseTempToC(form,value) {
    var v = parseFloat(value);
    if(form.tunit.value=='Fahrenheit') {
@@ -251,6 +252,38 @@ window.onload = (event) => {
       createTable(tabdat);
    }
 
+    const sitediv = document.getElementById('siteinfo');
+
+    const btn = document.getElementById('siteinfobutton');
+
+    console.log("site div is ",sitediv);
+    console.log("site btn is ",btn);
+
+    btn.addEventListener('click', function handleClick() {
+      const sitediv = document.getElementById('siteinfo');
+      if (sitediv.style.display === 'none') {
+        console.log("clicked! - will now show");
+        sitediv.style.display = 'block';
+
+        btn.textContent = 'Hide Site Info';
+      } else {
+        console.log("clicked!  - will now hide");
+        sitediv.style.display = 'none';
+
+        btn.textContent = 'Show Site Info';
+      }
+    });
+
+    const rhradio = document.getElementById("userh");
+    const wetradio = document.getElementById("usewet");
+
+    rhradio.addEventListener('click',function hndClick() {
+    
+       console.log("rhradio click");
+    });
+    wetradio.addEventListener('click',function hndClick() {
+       console.log("wetradio click");
+    });
 };
 
 function attemptClear() {
@@ -262,170 +295,204 @@ function attemptClear() {
    }
 }
 
-function setUseRH() {
-   document.querySelector('#userh').checked = true;
-}
-function setUseWB() {
-   document.querySelector('#usewet').checked = true;
-}
+
+
 
     </script>
+    <style>
+* {
+    font: normal 30px Verdana, Arial, sans-serif;
+}
+
+    </style>
 </head>
 <body bgcolor="#ffffff">
+<button id="siteinfobutton" text="Show Site Info">Show Site Info</button>
 <form id="ourform">
-    <p>Enter the dry bulb temperature
-        ( T<sub>dry</sub>) and wet bulb temperature ( T<sub>wet</sub>) in degrees
-        Celsius, then click on the Calculate RH button</p>
-    <p>
-    <table border="0" cellpadding="3" cellspacing="2" height="37" width="98%">
-        <tbody>
-        <tr>
-            <td>Month:</td>
-            <td>
-                <div>
-                    <input type="radio" id="mjj" name="season" value="MayJunJul" checked>
-                    <label for="mjj">MayJunJul</label>
-                </div>
-                <div>
-                    <input type="radio" id="ndj" name="season" value="NovDecJan">
-                    <label for="mjj">NovDecJan</label>
-                </div>
-                <div>
-                    <input type="radio" id="fmaaso" name="season" value="FebMarAprAugSeptOct">
-                    <label for="mjj">FebMarAprAugSeptOct</label>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td>Slope:</td>
-            <td>
-                <div>
-                    <input type="radio" id="slopeNL30" name="slope" value="nsl30">
-                    <label for="slopeNL30">North Slope Less than 30%</label>
-                </div>
-                <div>
-                    <input type="radio" id="slopeNG30" name="slope" value="nsg30">
-                    <label for="slopeNG30">North Slope Greater than 30%</label>
-                </div>
-                <div>
-                    <input type="radio" id="slopeNL30" name="slope" value="esl30" checked>
-                    <label for="slopeEL30">East Slope Less than 30%</label>
-                </div>
-                <div>
-                    <input type="radio" id="slopeNG30" name="slope" value="esg30">
-                    <label for="slopeEG30">East Slope Greater than 30%</label>
-                </div>
-                <div>
-                    <input type="radio" id="slopeSL30" name="slope" value="ssl30">
-                    <label for="slopeSL30">South Slope Less than 30%</label>
-                </div>
-                <div>
-                    <input type="radio" id="slopeSG30" name="slope" value="ssg30">
-                    <label for="slopeSG30">South Slope Greater than 30%</label>
-                </div>
-                <div>
-                    <input type="radio" id="slopeWL30" name="slope" value="wsl30">
-                    <label for="slopeWL30">West Slope Less than 30%</label>
-                </div>
-                <div>
-                    <input type="radio" id="slopeWG30" name="slope" value="wsg30">
-                    <label for="slopeWG30">West Slope Greater than 30%</label>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td>Shading of Surface Fuels</td>
-            <td>
-                <div>
-                    <input type="radio" id="l50" name="shading" value="l50" checked>
-                    <label for="l50">less than 50% shaded surface fuels</label>
-                </div>
-                <div>
-                    <input type="radio" id="g50" name="shading" value="g50">
-                    <label for="g50">more than 50% shaded surface fuels</label>
-                </div>
-            </td>
-        </tr>
-        <tr>
-            <td>unit altitude relative to wx</td>
-            <td>
-                <div>
-                    <input type="radio" id="below" name="unitalt" value="below">
-                    <label for="below">unit is 1000-2000' below wx</label>
-                </div>
-                <div>
-                    <input type="radio" id="same" name="unitalt" value="same" checked>
-                    <label for="same">unit is within 1000' altitude of wx</label>
-                </div>
-                <div>
-                    <input type="radio" id="above" name="unitalt" value="above">
-                    <label for="above">unit is 1000-2000' above wx</label>
-                </div>
-            </td>
-        </tr>
-        </tbody>
-    </table>
-    <table>
-        <tbody>
-        <tr>
-            <td>temp units:
-                <div>
-                    <input type="radio" id="c" name="tunit" value="Celcius">
-                    <label for="c">Celcius</label>
-                </div>
-                <div>
-                    <input type="radio" id="f" name="tunit" value="Fahrenheit" checked>
-                    <label for="f">Fahrenheit</label>
-                </div>
-            </td>
-            <td>
-                <p align="right">T<sub>dry</sub></p>
-            </td>
-            <td><input name="dry" size="6" type="text" value="80"></td>
-            <td>
-                <input type="radio" id="usewet" name="userh" value='wet' checked>
-                <p align="right">T<sub>wet</sub></p>
-            </td>
-            <td><input name="wet" size="6" type="text" onclick="setUseWB()" value="65"></td>
-            <td>
-                <input type="radio" id="userh" name="userh" value='rh'>
-                <p align="right">RH<sub>%</sub></p>
-            </td>
-            <td><input name="rh" size="3" type="text" onclick="setUseRH()" ></td>
-        </tr>
-        <tr>
-            <td>
-                <p align="center"><input value=" Calculate" onclick="calculateAndPush(this.form);" type="button"></p>
-            </td>
-        </tr>
-        <tr>
-            <td>Relative Humidity</td>
-            <td width="17%"><input name="relhum" size="6" type="text"></td>
-        </tr>
-        <tr>
-            <td>Reference FM</td>
-            <td width="17%"><input name="rfm" size="6" type="text"></td>
-        </tr>
-        <tr>
-            <td>Dead Fuel Moisture Content %</td>
-            <td width="17%"><input name="dfmc" size="6" type="text"></td>
-        </tr>
-        <tr>
-            <td>PIg propability of ignition</td>
-            <td width="17%"><input name="pig" size="6" type="text"></td>
-        </tr>
-        <tr>
-            <td>
-                <p align="center"><input value="clear results table" onclick="attemptClear();" type="button"></p>
-            </td>
-        </tr>
+    <div id="siteinfo" style="display:none">
+        <table border="0" cellpadding="3" cellspacing="2">
+            <tbody>
+            <tr>
+                <td>Month:</td>
+                <td>
+                    <div>
+                        <input type="radio" id="mjj" name="season" value="MayJunJul" checked>
+                        <label for="mjj">MayJunJul</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="ndj" name="season" value="NovDecJan">
+                        <label for="mjj">NovDecJan</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="fmaaso" name="season" value="FebMarAprAugSeptOct">
+                        <label for="mjj">FebMarAprAugSeptOct</label>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>Slope:</td>
+                <td>
+                    <div>
+                        <input type="radio" id="slopeNL30" name="slope" value="nsl30">
+                        <label for="slopeNL30">North Slope Less than 30%</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="slopeNG30" name="slope" value="nsg30">
+                        <label for="slopeNG30">North Slope Greater than 30%</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="slopeNL30" name="slope" value="esl30" checked>
+                        <label for="slopeEL30">East Slope Less than 30%</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="slopeNG30" name="slope" value="esg30">
+                        <label for="slopeEG30">East Slope Greater than 30%</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="slopeSL30" name="slope" value="ssl30">
+                        <label for="slopeSL30">South Slope Less than 30%</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="slopeSG30" name="slope" value="ssg30">
+                        <label for="slopeSG30">South Slope Greater than 30%</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="slopeWL30" name="slope" value="wsl30">
+                        <label for="slopeWL30">West Slope Less than 30%</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="slopeWG30" name="slope" value="wsg30">
+                        <label for="slopeWG30">West Slope Greater than 30%</label>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>Shading of Surface Fuels</td>
+                <td>
+                    <div>
+                        <input type="radio" id="l50" name="shading" value="l50" checked>
+                        <label for="l50">less than 50% shaded surface fuels</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="g50" name="shading" value="g50">
+                        <label for="g50">more than 50% shaded surface fuels</label>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>unit altitude relative to wx</td>
+                <td>
+                    <div>
+                        <input type="radio" id="below" name="unitalt" value="below">
+                        <label for="below">unit is 1000-2000' below wx</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="same" name="unitalt" value="same" checked>
+                        <label for="same">unit is within 1000' altitude of wx</label>
+                    </div>
+                    <div>
+                        <input type="radio" id="above" name="unitalt" value="above">
+                        <label for="above">unit is 1000-2000' above wx</label>
+                    </div>
+                </td>
+            </tr>
+            <tr>
+                <td>temp units:</td>
+                <td>
+                    <table>
+                        <tr>
+                            <td>
+                                <div>
+                                    <input type="radio" id="c" name="tunit" value="Celcius">
+                                    <label for="c">Celcius</label>
+                                </div>
+                            </td>
+                        </tr>
+                        <tr>
+                            <td>
+                                <div>
+                                    <input type="radio" id="f" name="tunit" value="Fahrenheit" checked>
+                                    <label for="f">Fahrenheit</label>
+                                </div>
+                            </td>
+                        </tr>
+                    </table>
+                </td>
+            </tr>
+            <tr>
+                <td>use web bulb or RH</td>
+                <td>
+                    <table>
+                        <tr><td>
+                            <input type="radio" id="userh" name="userh" value='rh'>
+                            <label for="userh">Use relative humidify</label>
+                        </td></tr>
+                        <tr><td>
+                            <input type="radio" id="usewet" name="userh" value='wet' checked>
+                            <label for="usewet">Use web bulb</label>
+                        </td></tr>
+                    </table>
+                </td>
+            </tr>
+            </tbody>
+        </table>
+    </div>
+    <div id="collectinfo">
+        <div>Fill in measurements</div>
+        <table>
+            <tbody>
+            <tr>
+                <td>
+                    <p align="right">T<sub>dry</sub></p>
+                </td>
+                <td><input name="dry" size="6" type="text" value="80"></td>
+            </tr>
+            <tr id="wetrow">
+                <td align="right">
+                    T<sub>wet</sub>
+                </td>
+                <td><input name="wet" size="6" type="text"  value="65"></td>
+            </tr>
+            <tr id="rhrow">
+                <td align="right">
+                    RH<sub>%</sub>
+                </td>
+                <td><input name="rh" size="3" type="text" ></td>
+            </tr>
+            <tr>
+                <td>
+                    <p align="center"><input value=" Calculate" onclick="calculateAndPush(this.form);" type="button">
+                    </p>
+                </td>
+            </tr>
+            <tr>
+                <td>Relative Humidity</td>
+                <td><input name="relhum" size="6" type="text"></td>
+            </tr>
+            <tr>
+                <td>Reference FM</td>
+                <td><input name="rfm" size="6" type="text"></td>
+            </tr>
+            <tr>
+                <td>Dead Fuel Moisture Content %</td>
+                <td><input name="dfmc" size="6" type="text"></td>
+            </tr>
+            <tr>
+                <td>PIg propability of ignition</td>
+                <td><input name="pig" size="6" type="text"></td>
+            </tr>
+            <tr>
+                <td>
+                    <p align="center"><input value="clear results table" onclick="attemptClear();" type="button"></p>
+                </td>
+            </tr>
 
-        </tbody>
-    </table>
-    </p>
+            </tbody>
+        </table>
+    </div>
 
 </form>
-<table id="resultsTable">
+<table border="1" id="resultsTable">
 </table>
 
 </body>
