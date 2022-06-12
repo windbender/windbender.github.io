@@ -156,6 +156,7 @@ function storeIt(form) {
   window.localStorage.setItem("slope",form.slope.value);
   window.localStorage.setItem("unitalt",form.unitalt.value);
   window.localStorage.setItem("history",JSON.stringify(tabdat));
+  window.localStorage.setItem("rhwet",form.userh.value);
 
 }
 
@@ -251,6 +252,20 @@ window.onload = (event) => {
       tabdat = JSON.parse(window.localStorage.getItem("history"));
       createTable(tabdat);
    }
+  if(window.localStorage.getItem("rhwet")) {
+      let rhwet = window.localStorage.getItem("rhwet");
+      aform.userh.value = rhwet;
+      if(rhwet=='rh') {
+        document.getElementById("wetrow").style.display = 'none';
+        document.getElementById("rhrow").style.display = 'table-row';
+      } else {
+        document.getElementById("wetrow").style.display = 'table-row';
+        document.getElementById("rhrow").style.display = 'none';
+      }
+
+
+    }
+
 
     const sitediv = document.getElementById('siteinfo');
 
@@ -278,11 +293,12 @@ window.onload = (event) => {
     const wetradio = document.getElementById("usewet");
 
     rhradio.addEventListener('click',function hndClick() {
-
-       console.log("rhradio click");
+        document.getElementById("wetrow").style.display = 'none';
+        document.getElementById("rhrow").style.display = 'table-row';
     });
     wetradio.addEventListener('click',function hndClick() {
-       console.log("wetradio click");
+        document.getElementById("wetrow").style.display = 'table-row';
+        document.getElementById("rhrow").style.display = 'none';
     });
 };
 
@@ -349,11 +365,11 @@ label {
                         <label for="slopeNG30">North Slope Greater than 30%</label>
                     </div>
                     <div>
-                        <input type="radio" id="slopeNL30" name="slope" value="esl30" checked>
+                        <input type="radio" id="slopeEL30" name="slope" value="esl30" checked>
                         <label for="slopeEL30">East Slope Less than 30%</label>
                     </div>
                     <div>
-                        <input type="radio" id="slopeNG30" name="slope" value="esg30">
+                        <input type="radio" id="slopeEG30" name="slope" value="esg30">
                         <label for="slopeEG30">East Slope Greater than 30%</label>
                     </div>
                     <div>
@@ -449,23 +465,23 @@ label {
         <div>Fill in measurements</div>
         <table>
             <tbody>
-            <tr>
+            <tr style="display:table-row">
                 <td>
                     <p align="right">T<sub>dry</sub></p>
                 </td>
-                <td><input name="dry" size="6" type="text" value="80"></td>
+                <td><input style="font-size:90px;" name="dry" size="6" type="text" value="80"></td>
             </tr>
             <tr id="wetrow">
                 <td align="right">
                     T<sub>wet</sub>
                 </td>
-                <td><input name="wet" size="6" type="text"  value="65"></td>
+                <td><input style="font-size:90px;" name="wet" size="6" type="text"  value="65"></td>
             </tr>
-            <tr id="rhrow">
+            <tr id="rhrow" style="display:none">
                 <td align="right">
                     RH<sub>%</sub>
                 </td>
-                <td><input name="rh" size="3" type="text" ></td>
+                <td><input style="font-size:90px;" name="rh" size="3" type="text" ></td>
             </tr>
             <tr>
                 <td>
